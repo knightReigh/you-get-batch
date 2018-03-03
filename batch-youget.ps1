@@ -39,6 +39,7 @@ foreach($line in Get-Content -Encoding UTF8 .\vlist.txt) {
                 else {
                     Add-Content error.txt -Value $VideoTitle
                     Add-Content error.txt -Value $line
+					$pvalue = 0
                     break
                 }
             }
