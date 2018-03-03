@@ -1,3 +1,9 @@
+# download videos from a list using you-get.exe, Windows 10, powershell
+# required: vlist.txt
+#
+# the script scanns the file and download links starting with "https"
+# video failed to be downloaded or larger than 100 MB are stored in file "error.txt"
+
 chcp 65001
 
 if (!(Test-Path -PathType Leaf error.txt)) {

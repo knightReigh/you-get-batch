@@ -2,6 +2,13 @@ import requests
 import os, sys
 import codecs
 
+# get video list from a bilibili member
+# stored in vlist.txt
+# # title1
+# url1
+# # title2
+# url2
+
 url = "https://space.bilibili.com/ajax/member/getSubmitVideos?mid=88805253&pagesize=30&tid=0&page=1&keyword=&order=pubdate"
 content = requests.get(url).json()
 pages = content['data']['pages']
