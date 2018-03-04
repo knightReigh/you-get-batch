@@ -7,16 +7,17 @@
 chcp 65001
 
 $size_limit = 100 # in MB
-$trial_limit = 10 # call you-get up to trial_limit times
+$trial_limit = 3 # call you-get up to trial_limit times
+$pause_time = 3 # seconds
 
 if (!(Test-Path -PathType Leaf error.txt)) {
     New-Item -ItemType File error.txt
 }
 
 $VideoTitle = ""
-$counter = 1
 foreach($line in Get-Content -Encoding UTF8 .\vlist.txt) {
     Copy-Item vlist.txt vlist-old.txt
+	$counter = 1
 
     if ($line -match "http.*") {
         Write-Output $line
@@ -24,7 +25,7 @@ foreach($line in Get-Content -Encoding UTF8 .\vlist.txt) {
             New-Item -ItemType directory -Path Downloaded
         }
         $pvalue = 1
-        while ($counter -lt $trial_limit) {
+        while ($counter -le $trial_limit) {
             Try{
                 $json = you-get.exe --json --format=mp4 $line | ConvertFrom-Json
                 if ([int]($json.'streams'.'mp4'.'size') -lt ($size_limit * 1000000)) {
@@ -40,25 +41,32 @@ foreach($line in Get-Content -Encoding UTF8 .\vlist.txt) {
                 }
                 else {
 					$pvalue = 0
-                    Add-Content error.txt -Value ($VideoTitle + " oversized")
+                    Add-Content error.txt -Value ($VideoTitle + " oversized") -encoding UTF8
                     Add-Content error.txt -Value $line
                     break
                 }
             }
             Catch{
-                Start-Sleep(3)
+                Start-Sleep($pause_time)
 				$counter += 1
                 continue
             }
         }
 
         if ($pvalue -eq 1) {
-            Add-Content error.txt -Value $VideoTitle
+            Add-Content error.txt -Value $VideoTitle -encoding UTF8
             Add-Content error.txt -Value $line
         }
 
 		Try {
-			get-content -encoding UTF8 vlist.txt | Select-Object -skip 2 | set-content -encoding UTF8 "tmp.txt"
+			$new_string = get-content -encoding UTF8 vlist.txt | Select-Object -skip 2 
+			if ($new_string) { 
+				$new_string | set-content -encoding UTF8 tmp.txt
+			} 
+			else {
+				New-Item -ItemType File tmp.txt
+			}
+			
 			Move-Item tmp.txt vlist.txt -Force
 		} 
 		Catch{
