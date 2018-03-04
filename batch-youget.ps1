@@ -39,7 +39,8 @@ foreach($line in Get-Content -Encoding UTF8 .\vlist.txt) {
                     }
                 }
                 else {
-                    Add-Content error.txt -Value $VideoTitle
+					$pvalue = 0
+                    Add-Content error.txt -Value ($VideoTitle + " oversized")
                     Add-Content error.txt -Value $line
                     break
                 }
