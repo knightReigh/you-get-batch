@@ -14,6 +14,7 @@ if (!(Test-Path -PathType Leaf error.txt)) {
 }
 
 $VideoTitle = ""
+$counter = 1
 foreach($line in Get-Content -Encoding UTF8 .\vlist.txt) {
     Copy-Item vlist.txt vlist-old.txt
 
@@ -23,12 +24,13 @@ foreach($line in Get-Content -Encoding UTF8 .\vlist.txt) {
             New-Item -ItemType directory -Path Downloaded
         }
         $pvalue = 1
-        while ($counter -ne $trial_limit) {
+        while ($counter -lt $trial_limit) {
             Try{
                 $json = you-get.exe --json --format=mp4 $line | ConvertFrom-Json
                 if ([int]($json.'streams'.'mp4'.'size') -lt ($size_limit * 1000000)) {
                     you-get.exe -o Downloaded --format=mp4 $line
                     if ($LASTEXITCODE -match 1) {
+						$counter += 1
                         continue
                     }
                     else {
@@ -39,12 +41,12 @@ foreach($line in Get-Content -Encoding UTF8 .\vlist.txt) {
                 else {
                     Add-Content error.txt -Value $VideoTitle
                     Add-Content error.txt -Value $line
-					$pvalue = 0
                     break
                 }
             }
             Catch{
                 Start-Sleep(3)
+				$counter += 1
                 continue
             }
         }
@@ -54,8 +56,13 @@ foreach($line in Get-Content -Encoding UTF8 .\vlist.txt) {
             Add-Content error.txt -Value $line
         }
 
-		get-content -encoding UTF8 vlist.txt | Select-Object -skip 2 | set-content -encoding UTF8 "tmp.txt"
-		Move-Item tmp.txt vlist.txt -Force
+		Try {
+			get-content -encoding UTF8 vlist.txt | Select-Object -skip 2 | set-content -encoding UTF8 "tmp.txt"
+			Move-Item tmp.txt vlist.txt -Force
+		} 
+		Catch{
+			# ignore empty vlist.txt
+		}
 
     } else {
         $VideoTitle = $line
